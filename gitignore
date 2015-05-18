@@ -1,0 +1,7 @@
+.DS_Store
+*.db
+.idea/
+client/node_modules/
+client/src/bower_components/
+client/*.js
+client/*.css
