@@ -1,5 +1,6 @@
-class Menu {
+'use strict';
 
+class Menu {
     create() {
         var tmpLgo = this.game.cache.getImage('logo');
         var logo = this.add.sprite(
@@ -7,7 +8,6 @@ class Menu {
             (this.game.height - tmpLgo.height) / 2,
             'logo'
         );
-
         this.game.input.onDown.add(this.startGame, this);
     }
 

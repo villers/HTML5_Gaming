@@ -1,8 +1,6 @@
-class Preload {
+'use strict';
 
-    constructor() {
-        this.loadingSprite = null;
-    }
+class Preload {
 
     preload() {
 
