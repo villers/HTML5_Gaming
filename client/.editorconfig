@@ -1,0 +1,19 @@
+# EditorConfig is awesome: http://EditorConfig.org
+
+root = true
+
+# General Options
+[*]
+indent_size = 4
+indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# JavaScript
+[*.js]
+indent_size = 4
+indent_style = space
+
+# Markdown
+[*.md]
+trim_trailing_whitespace = false

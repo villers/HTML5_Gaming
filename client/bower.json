@@ -1,0 +1,12 @@
+{
+  "name": "html5gaming",
+  "version": "0.0.1",
+  "description": "Minijeux",
+  "authors": [
+    ""
+  ],
+  "dependencies": {
+    "phaser-official": "latest",
+    "traceur-compiler": "https://github.com/google/traceur-compiler.git#~1.0.0"
+  }
+}
