@@ -117,6 +117,7 @@ class Game {
         // Define attribute
         sprite.mass = 1;
         sprite.body.static = true;
+        sprite.body.setCircle(sprite.width / 2);
         sprite.body.setCollisionCategory(2); // this is a bitmask
         sprite.body.sensor = true;
     }
