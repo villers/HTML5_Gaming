@@ -3,4 +3,5 @@
 .idea/
 client/node_modules/
 client/src/bower_components/
+node_modules/
 *.css
