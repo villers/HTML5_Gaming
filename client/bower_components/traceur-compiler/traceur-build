@@ -1,3 +1,0 @@
-#!/usr/bin/env node
-
-require('./build/node/command.js');

@@ -1,5 +1,0 @@
-*
-!src/node/*.js
-!bin/traceur.js
-!bin/traceur-runtime.js
-!traceur

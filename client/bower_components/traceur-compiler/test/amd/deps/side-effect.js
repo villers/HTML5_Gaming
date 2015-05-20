@@ -1,1 +1,0 @@
-this.sideEffect = 1;
