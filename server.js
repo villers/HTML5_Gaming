@@ -28,32 +28,28 @@ for (var i = 0; i < nbParticule; i++)
 io.on('connection', function(socket){
     var me = false;
 
-    socket.on('login', function(user){
+    socket.on('new_player', function(user){
         me = user;
         socket.emit('getParticules', particules);
 
         for (var k in users){
-            //socket.emit('newUser', users[k]);
+            socket.emit('new_player', users[k]);
         }
 
         users[me.id] = me;
-        socket.broadcast.emit('newUser', user);
-        console.log(users);
-
+        socket.broadcast.emit('new_player', user);
     });
 
     socket.on('delete_particule', function(id){
         particules[id].x = randomIntInc(0, 5000);
         particules[id].y = randomIntInc(0, 5000);
-        io.emit('update_particles', particules[id]);
-        console.log(particules[id]);
+        console.log(id);
+        socket.broadcast.emit('update_particles', particules[id]);
     });
 
-    socket.on('myPlayer', function(user){
+    socket.on('move_player', function(user){
         users[me.id] = user;
-        io.emit('emitPlayer', user);
-
-        console.log(user);
+        socket.broadcast.emit('move_player', user);
     });
 
     socket.on('disconnect', function(){
@@ -61,7 +57,7 @@ io.on('connection', function(socket){
             return false;
         }
         delete users[me.id];
-        io.emit('logout', me.id);
+        socket.emit('logout', me.id);
     });
 
 });

@@ -1,6 +1,6 @@
 'use strict';
 
-import Sprite from 'scripts/class/sprite';
+import Enemy from 'scripts/class/enemy';
 import Player from 'scripts/class/player';
 import Particules from 'scripts/class/particles';
 
@@ -28,31 +28,40 @@ class Game {
     }
 
     setEventHandlers(game){
-        this.socket.on("connect", (data) => {
+        this.socket.on('connect', (data) => {
             this.player = new Player(game, this.socket);
             this.player.sprite.bringToTop();
             game.camera.follow(this.player.sprite);
-            this.socket.emit('login', this.player.toJson());
+            this.socket.emit('new_player', this.player.toJson());
 
-            this.socket.on("getParticules", (particles) => {
+            this.socket.on('new_player', (enemy) => {
+                console.log('new player', enemy);
+                this.players[enemy.id] = new Enemy(game, this.socket, enemy);
+            });
+
+            this.socket.on('getParticules', (particles) => {
                 for (var particle of particles) {
                     new Particules(game, particle, this.particules);
                 }
             });
 
-            this.socket.on("update_particles", (particle) => {
-                console.log(this.particules.children.length)
-                console.log(this.particules.children[particle.id].id);
-
+            this.socket.on('update_particles', (particle) => {
                 this.particules.children.filter(function(item) {
                     if(item.id === particle.id){
+                        item.kill();
                         item.body.destroy();
-                        item.destroy();
                         return;
                     }
                 });
-
+                console.log('update particule');
                 new Particules(game, particle, this.particules);
+            });
+
+            this.socket.on('move_player', (enemy) => {
+                if(this.players[enemy.id]){
+                    this.players[enemy.id].update(game, enemy);
+                }
+                console.log('player moved', enemy.id)
             });
         });
     }
@@ -133,17 +142,24 @@ class Game {
     update(game) {
         if (this.player) {
             this.player.update(game);
-            game.debug.text('speed: '+ this.player.speed, 32, 120);
-            game.debug.text('mass:'+ this.player.mass, 32, 150);
-            game.physics.arcade.moveToPointer(this.player.sprite, this.player.speed);
+            game.physics.arcade.moveToPointer(this.player.sprite, this.player.sprite.speed);
+            game.debug.text('speed: ' + this.player.sprite.speed, 32, 120);
+            game.debug.text('mass:' + this.player.sprite.mass, 32, 150);
         }
+
+        /*for (var i in this.players)
+        {
+            this.players[i].update(game);
+        }*/
 
         game.debug.box2dWorld();
         game.debug.cameraInfo(game.camera, 32, 32);
     }
 
     render(game) {
-        //this.socket.emit('myPlayer', this.player.toString());
+        if (this.player) {
+            this.player.render(game);
+        }
     }
 }
 
