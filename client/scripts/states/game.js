@@ -1,6 +1,8 @@
 'use strict';
 
 import Sprite from 'scripts/class/sprite';
+import Player from 'scripts/class/player';
+import Particules from 'scripts/class/particles';
 
 class Game {
     create(game) {
@@ -16,19 +18,46 @@ class Game {
         game.world.setBounds(0, 0, 5000, 5000);
         game.add.tileSprite(0, 0, game.world.width, game.world.height, 'grid');
 
-        this.login(game);
-
         game.camera.bounds.setTo(-game.width/2, -game.height/2, game.world.width + game.width, game.world.height + game.height);
 
         this.particules = game.add.group();
         this.particules.enableBody = true;
         this.particules.physicsBodyType = Phaser.Physics.BOX2D;
 
-        this.player.sprite.body.setCategoryContactCallback(2, this.particulesCallback, this);
-        this.player.sprite.body.setCategoryContactCallback(3, this.enemyCallback, this);
+        this.setEventHandlers(game);
     }
 
-    login(game){
+    setEventHandlers(game){
+        this.socket.on("connect", (data) => {
+            this.player = new Player(game, this.socket);
+            this.player.sprite.bringToTop();
+            game.camera.follow(this.player.sprite);
+            this.socket.emit('login', this.player.toJson());
+
+            this.socket.on("getParticules", (particles) => {
+                for (var particle of particles) {
+                    new Particules(game, particle, this.particules);
+                }
+            });
+
+            this.socket.on("update_particles", (particle) => {
+                console.log(this.particules.children.length)
+                console.log(this.particules.children[particle.id].id);
+
+                this.particules.children.filter(function(item) {
+                    if(item.id === particle.id){
+                        item.body.destroy();
+                        item.destroy();
+                        return;
+                    }
+                });
+
+                new Particules(game, particle, this.particules);
+            });
+        });
+    }
+
+    /*login(game){
         var color = this.color[game.rnd.integerInRange(0, 5)];
         var bmd = game.add.bitmapData(50,50);
 
@@ -98,83 +127,23 @@ class Game {
             //this.players[player.id].sprite.body.setCollisionCategory(3);
             console.log('New user');
         });
-    }
-
-    createParticle(particules){
-        var game = this.game;
-        var bmd = game.add.bitmapData(20,20);
-
-        // Draw circle
-        bmd.ctx.fillStyle = particules.color;
-        bmd.ctx.beginPath();
-        bmd.ctx.arc(10, 10, 10, 0, Math.PI*2, true);
-        bmd.ctx.closePath();
-        bmd.ctx.fill();
-
-        // Put BitmapData in a Sprite
-        var sprite = this.particules.create(particules.x, particules.y, bmd);
-
-        // Define attribute
-        sprite.mass = 1;
-        sprite.body.static = true;
-        sprite.body.setCircle(sprite.width / 2);
-        sprite.body.setCollisionCategory(2); // this is a bitmask
-        sprite.body.sensor = true;
-    }
-
-    particulesCallback(body1, body2, fixture1, fixture2, begin){
-        if (!begin)
-        {
-            return;
-        }
-
-        this.player.sprite.width += body2.sprite.mass;
-        this.player.sprite.height += body2.sprite.mass;
-        this.player.speed += body2.sprite.mass;
-        this.player.mass += body2.sprite.mass;
-        //console.log((1000 / this.player.speed) + 100);
-
-        body2.sprite.destroy();
-        body2.destroy();
-    }
-
-    enemyCallback(body1, body2, fixture1, fixture2, begin){
-        if (!begin)
-        {
-            return;
-        }
-
-        console.log(body1.mass, body2.mass);
-
-        if(body1.mass > body2.mass){
-            //body2.sprite.destroy();
-            body1.mass += body2.mass;
-            body2.destroy();
-        }
-        else if(body1.mass < body2.mass) {
-            body2.mass += body1.mass;
-            body1.destroy();
-        }
-    }
+    }*/
 
 
     update(game) {
-        this.player.sprite.body.setCircle(this.player.sprite.width / 2);
+        if (this.player) {
+            this.player.update(game);
+            game.debug.text('speed: '+ this.player.speed, 32, 120);
+            game.debug.text('mass:'+ this.player.mass, 32, 150);
+            game.physics.arcade.moveToPointer(this.player.sprite, this.player.speed);
+        }
 
-        if (game.physics.arcade.distanceToPointer(this.player.sprite, game.input.activePointer) > this.player.sprite.width / 2)
-        {
-            game.physics.arcade.moveToPointer(this.player.sprite, (1000 / this.player.speed) + 100);
-        }
-        else
-        {
-            game.physics.arcade.moveToPointer(this.player.sprite, 0);
-        }
         game.debug.box2dWorld();
         game.debug.cameraInfo(game.camera, 32, 32);
     }
 
     render(game) {
-        this.socket.emit('myPlayer', this.player.toString());
+        //this.socket.emit('myPlayer', this.player.toString());
     }
 }
 

@@ -19,25 +19,34 @@ for (var i = 0; i < nbParticule; i++)
     particules[i] = {
         x: randomIntInc(0, 5000),
         y: randomIntInc(0, 5000),
-        color: color[randomIntInc(0, 5)]
+        color: color[randomIntInc(0, 5)],
+        id: i
     };
 }
+
 
 io.on('connection', function(socket){
     var me = false;
 
     socket.on('login', function(user){
-        hrTime = process.hrtime()
         me = user;
-        me.id = parseInt(hrTime[0] * 1000000 + hrTime[1] / 1000);
-        socket.emit('logged', me, particules);
+        socket.emit('getParticules', particules);
 
         for (var k in users){
-            socket.emit('newUser', users[k]);
+            //socket.emit('newUser', users[k]);
         }
 
         users[me.id] = me;
         socket.broadcast.emit('newUser', user);
+        console.log(users);
+
+    });
+
+    socket.on('delete_particule', function(id){
+        particules[id].x = randomIntInc(0, 5000);
+        particules[id].y = randomIntInc(0, 5000);
+        io.emit('update_particles', particules[id]);
+        console.log(particules[id]);
     });
 
     socket.on('myPlayer', function(user){
@@ -52,7 +61,7 @@ io.on('connection', function(socket){
             return false;
         }
         delete users[me.id];
-        io.emit('logout', me);
+        io.emit('logout', me.id);
     });
 
 });
