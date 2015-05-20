@@ -10,7 +10,7 @@ app.get('/', function(req, res){
 });
 
 var color = ['#999999', '#CCCCCC', '#00FF00', '#0000FF', '#FF0000', '#FFFF00'];
-var users = {};
+var users = [];
 var nbParticule = 250;
 var particules = [];
 
@@ -43,8 +43,7 @@ io.on('connection', function(socket){
     socket.on('delete_particule', function(id){
         particules[id].x = randomIntInc(0, 5000);
         particules[id].y = randomIntInc(0, 5000);
-        console.log(id);
-        socket.broadcast.emit('update_particles', particules[id]);
+        io.emit('update_particles', particules[id]);
     });
 
     socket.on('move_player', function(user){

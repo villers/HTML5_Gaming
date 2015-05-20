@@ -6,6 +6,7 @@
     ""
   ],
   "dependencies": {
-    "traceur-compiler": "https://github.com/google/traceur-compiler.git#~1.0.0"
+    "traceur-compiler": "https://github.com/google/traceur-compiler.git#~1.0.0",
+    "phaser-official": "~2.3.0"
   }
 }

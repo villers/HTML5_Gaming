@@ -2,10 +2,8 @@
  * Created by viller_m on 19/05/15.
  */
 class Enemy {
-    constructor(game, socket, enemy) {
-        this.socket = socket;
+    constructor(game, enemy, groupColision, groupEnemy) {
         this.game = game;
-
         this.lastmass = 0;
 
         var bmd = game.add.bitmapData(50,50);
@@ -15,19 +13,21 @@ class Enemy {
         bmd.ctx.closePath();
         bmd.ctx.fill();
 
+        this.sprite = groupEnemy.create(enemy.x, enemy.y, bmd);
+        game.physics.p2.enable(this.sprite, true);
+        this.sprite.body.setCircle(this.sprite.width / 2);
+        this.sprite.body.fixedRotation = true;
 
+        this.sprite.body.setCollisionGroup(groupColision[1]);
+        this.sprite.body.static = true;
 
-        this.sprite = game.add.sprite(enemy.x, enemy.y, bmd);
+        this.sprite.body.collides([groupColision[0], groupColision[2]]);
         this.sprite.id = enemy.id;
         this.sprite.username = '';
         this.sprite.color = enemy.color;
         this.sprite.mass = enemy.mass;
         this.sprite.speed_base = 5000;
         this.sprite.speed = enemy.speed;
-
-        game.physics.box2d.enable(this.sprite);
-        this.sprite.body.static = true;
-        this.sprite.body.setCollisionCategory(3);
     }
 
     toJson () {
@@ -42,20 +42,6 @@ class Enemy {
             height: this.sprite.height,
             width: this.sprite.width
         };
-    }
-
-    update(game, enemy) {
-        if(this.lastmass != this.sprite.mass){
-            this.lastmass = this.sprite.mass;
-            this.sprite.body.setCircle(this.sprite.width / 2);
-        }
-        this.sprite.color = enemy.color;
-        this.sprite.mass = enemy.mass;
-        this.sprite.speed = enemy.speed;
-        this.sprite.height = enemy.height;
-        this.sprite.width = enemy.width;
-        this.sprite.x = enemy.x;
-        this.sprite.y = enemy.y;
     }
 }
 

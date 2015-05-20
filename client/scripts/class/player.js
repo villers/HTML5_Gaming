@@ -2,9 +2,9 @@
  * Created by viller_m on 19/05/15.
  */
 class Player {
-    constructor(game, socket) {
-        this.socket = socket;
+    constructor(game, socket, groupColision) {
         this.game = game;
+        this.socket = socket;
         this.id = socket.io.engine.id;
         this.lastmass = 0;
 
@@ -26,43 +26,26 @@ class Player {
         bmd.ctx.fill();
 
         this.sprite = game.add.sprite(x, y, bmd);
+        game.physics.p2.enable(this.sprite, true);
+        this.sprite.body.setCircle(this.sprite.width / 2);
+        this.sprite.body.fixedRotation = true;
+
+        this.sprite.body.setCollisionGroup(groupColision[0]);
+        this.sprite.body.collides(groupColision[1], this.enemyCallback, this);
+        this.sprite.body.collides(groupColision[2], this.particulesCallback, this);
+
+        this.sprite.id = this.id;
         this.sprite.color = color;
         this.sprite.mass = 20;
         this.sprite.speed_base = 5000;
         this.sprite.speed = this.sprite.speed_base / this.sprite.mass;
-        game.physics.box2d.enable(this.sprite);
 
-        this.sprite.body.setCategoryContactCallback(2, this.particulesCallback, this);
-        this.sprite.body.setCategoryContactCallback(3, this.enemyCallback, this);
-
-        setInterval(() => {
-            this.socket.emit('move_player', this.toJson());
-        }, 500 );
+        game.camera.follow(this.sprite);
     }
 
-    particulesCallback(body1, body2, fixture1, fixture2, begin){
-        if (!begin)
-        {
-            return;
-        }
+    enemyCallback(body1, body2){
+        console.log(body1, body2);
 
-        this.sprite.width += body2.sprite.mass;
-        this.sprite.height += body2.sprite.mass;
-        this.sprite.speed = this.sprite.speed_base / this.sprite.mass;
-        this.sprite.mass += body2.sprite.mass;
-
-        var id = body2.sprite.id;
-        body2.sprite.destroy();
-        body2.destroy();
-
-        this.socket.emit('delete_particule', id);
-    }
-
-    enemyCallback(body1, body2, fixture1, fixture2, begin){
-        if (!begin)
-        {
-            return;
-        }
 
         if(body2.sprite && this.sprite.mass > body2.sprite.mass){
             body2.sprite.mass--;
@@ -95,6 +78,19 @@ class Player {
         }
     }
 
+    particulesCallback(body1, body2){
+        this.sprite.width += body2.sprite.mass;
+        this.sprite.height += body2.sprite.mass;
+        this.sprite.speed = this.sprite.speed_base / this.sprite.mass;
+        this.sprite.mass += body2.sprite.mass;
+
+        var id = body2.sprite.id;
+        body2.sprite.destroy();
+        //body2.destroy();
+
+        this.socket.emit('delete_particule', id);
+    }
+
     toJson () {
         return {
             id: this.sprite.id,
@@ -109,20 +105,12 @@ class Player {
         };
     }
 
-    update(game) {
-        if(this.lastmass != this.sprite.mass){
-            this.lastmass = this.sprite.mass;
-            this.sprite.body.setCircle(this.sprite.width / 2);
-        }
-    }
-
-    render(game){
-        if(Math.round(this.sprite.x) != Math.round(this.lastx) || Math.round(this.sprite.y) != Math.round(this.lasty)){
+    render(){
+        if(this.lastmass != this.sprite.mass || Math.round(this.sprite.x) != Math.round(this.lastx) || Math.round(this.sprite.y) != Math.round(this.lasty)){
             this.lastx = this.sprite.x;
             this.lasty = this.sprite.y;
-            setTimeout(() => {
-                this.socket.emit('move_player', this.toJson());
-            }, 5000 );
+            this.lastmass = this.sprite.mass;
+            this.socket.emit('move_player', this.toJson());
         }
     }
 }
