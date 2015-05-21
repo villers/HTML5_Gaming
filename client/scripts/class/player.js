@@ -103,7 +103,7 @@ class Player {
             this.sprite.speed = this.sprite.speed_base / this.sprite.mass;
 
             this.setColision();
-
+            body2.sprite.kill();
             this.socket.emit('update_particles', body2.sprite.id);
         }
     }
