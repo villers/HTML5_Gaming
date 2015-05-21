@@ -44,13 +44,7 @@ class Game {
             this.player = new Player(game, this.socket, this.groupColision);
             this.socket.emit('new_player', this.player.toJson());
 
-
-            this.socket.on('new_player', (enemy) => {
-                console.log('new player', enemy);
-                new Enemy(game, enemy, this.groupColision, this.groupEnemy);
-            });
-
-
+            // particules
             this.socket.on('getParticules', (particles) => {
                 for (var particle of particles) {
                     new Particules(game, particle, this.groupColision, this.groupParticules);
@@ -61,14 +55,18 @@ class Game {
                 this.groupParticules.children.filter(function(item) {
                     if(item.id === particle.id){
                         item.kill();
-                        //item.body.destroy();
                         return;
                     }
                 });
                 new Particules(game, particle, this.groupColision, this.groupParticules);
-                console.log('particule update', particle, this.groupParticules)
             });
 
+            // new player
+            this.socket.on('new_player', (enemy) => {
+                new Enemy(game, enemy, this.groupColision, this.groupEnemy);
+            });
+
+            // Player
             this.socket.on('move_player', (enemy) => {
                 this.groupEnemy.children.filter(function(item) {
                     if(item.id === enemy.id){
@@ -79,11 +77,17 @@ class Game {
                 new Enemy(game, enemy, this.groupColision, this.groupEnemy);
             });
 
+            this.socket.on('kill_player', (user) => {
+                if(this.player.id == user.id) {
+                    this.player.generateSprite();
+                }
+
+            });
+
             this.socket.on('logout', (id) => {
                 this.groupEnemy.children.filter(function(item) {
-                    if(item.id === enemy.id){
+                    if(item.id === id){
                         item.kill();
-                        return;
                     }
                 });
             });
@@ -94,15 +98,16 @@ class Game {
         if (this.player) {
             game.physics.arcade.moveToPointer(this.player.sprite, this.player.sprite.speed);
             game.debug.text('speed: ' + this.player.sprite.speed, 32, 120);
-            game.debug.text('mass:' + this.player.sprite.mass, 32, 150);
+            game.debug.text(this.player.sprite.mass, this.player.sprite.x - game.camera.x - 10, this.player.sprite.y - game.camera.y+ 5);
         }
 
         game.debug.cameraInfo(game.camera, 32, 32);
+
     }
 
-    render() {
+    render(game) {
         if (this.player) {
-            this.player.render();
+            this.player.render(game);
         }
     }
 }

@@ -11,11 +11,10 @@ class Particules {
         bmd.ctx.closePath();
         bmd.ctx.fill();
 
-        // Put BitmapData in a Sprite
         this.sprite = groupParticules.create(particule.x, particule.y, bmd);
-        game.physics.p2.enable(this.sprite, true);
+        game.physics.p2.enable(this.sprite, false);
         this.sprite.body.setCircle(this.sprite.width / 2);
-        this.sprite.body.fixedRotation = true;
+        this.sprite.body.fixedRotation = false;
 
         this.sprite.body.setCollisionGroup(groupColision[2]);
         this.sprite.body.static = true;
@@ -23,8 +22,7 @@ class Particules {
         this.sprite.body.collides([groupColision[0], groupColision[1]]);
         this.sprite.id = particule.id;
         this.sprite.mass = 1;
-
-
+        this.sprite.killed = 0;
     }
 }
 

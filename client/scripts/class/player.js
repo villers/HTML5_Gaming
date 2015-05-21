@@ -5,90 +5,107 @@ class Player {
     constructor(game, socket, groupColision) {
         this.game = game;
         this.socket = socket;
+        this.groupColision = groupColision;
         this.id = socket.io.engine.id;
-        this.lastmass = 0;
 
-        this.lastx = 0;
-        this.lasty = 0;
+        this.generateSprite();
+    }
 
-        var color = ['#999999', '#CCCCCC', '#00FF00', '#0000FF', '#FF0000', '#FFFF00'];
-        color = color[game.rnd.integerInRange(0, 5)];
+    generateSprite(){
+        var color = this.generateColor();
+        var bmd = this.generateCircle(color);
 
-        var x = game.world.randomX;
-        var y = game.world.randomY;
+        this.sprite = this.game.add.sprite(this.game.world.randomX, this.game.world.randomY, bmd);
+        this.game.physics.p2.enable(this.sprite, false);
 
-
-        var bmd = game.add.bitmapData(50,50);
-        bmd.ctx.fillStyle = color;
-        bmd.ctx.beginPath();
-        bmd.ctx.arc(25, 25, 25, 0, Math.PI*2, true);
-        bmd.ctx.closePath();
-        bmd.ctx.fill();
-
-        this.sprite = game.add.sprite(x, y, bmd);
-        game.physics.p2.enable(this.sprite, true);
-        this.sprite.body.setCircle(this.sprite.width / 2);
-        this.sprite.body.fixedRotation = true;
-
-        this.sprite.body.setCollisionGroup(groupColision[0]);
-        this.sprite.body.collides(groupColision[1], this.enemyCallback, this);
-        this.sprite.body.collides(groupColision[2], this.particulesCallback, this);
+        this.setColision();
 
         this.sprite.id = this.id;
         this.sprite.color = color;
         this.sprite.mass = 20;
         this.sprite.speed_base = 5000;
         this.sprite.speed = this.sprite.speed_base / this.sprite.mass;
+        this.sprite.killed = 0;
 
-        game.camera.follow(this.sprite);
+        this.game.camera.follow(this.sprite);
+    }
+
+    generateColor(){
+        var color = ['#999999', '#CCCCCC', '#00FF00', '#0000FF', '#FF0000', '#FFFF00'];
+        return color[this.game.rnd.integerInRange(0, 5)];
+    }
+
+    generateCircle(color){
+        var bmd = this.game.add.bitmapData(50,50);
+        bmd.ctx.fillStyle = color;
+        bmd.ctx.beginPath();
+        bmd.ctx.arc(25, 25, 25, 0, Math.PI*2, true);
+        bmd.ctx.closePath();
+        bmd.ctx.fill();
+        return bmd;
+    }
+
+    setColision(){
+        this.sprite.body.setCircle(this.sprite.width / 2);
+        this.sprite.body.fixedRotation = false;
+
+        this.sprite.body.setCollisionGroup(this.groupColision[0]);
+        this.sprite.body.collides(this.groupColision[1], this.enemyCallback, this);
+        this.sprite.body.collides(this.groupColision[2], this.particulesCallback, this);
     }
 
     enemyCallback(body1, body2){
-        console.log(body1, body2);
+        if(!body2.sprite.killed && this.sprite.mass - (this.sprite.mass * 0.2) > body2.sprite.mass){
+            body2.sprite.killed = 1;
 
+            this.sprite.width += body2.sprite.mass;
+            this.sprite.height += body2.sprite.mass;
+            this.sprite.mass += body2.sprite.mass;
+            this.sprite.speed = this.sprite.speed_base / this.sprite.mass;
 
-        if(body2.sprite && this.sprite.mass > body2.sprite.mass){
-            body2.sprite.mass--;
-            body2.sprite.width--;
-            body2.sprite.height--;
-            this.sprite.mass++
-            this.sprite.width++;
-            this.sprite.height++;
+            this.setColision();
 
-            if(body2.sprite.mass < 20)
-            {
-                body2.sprite.kill();
-                body2.destroy();
-            }
+            var enemy = {
+                id: body2.sprite.id,
+                username: body2.sprite.username,
+                speed: body2.sprite.speed,
+                mass: body2.sprite.mass,
+                color: body2.sprite.color,
+                x: body2.sprite.x,
+                y: body2.sprite.y,
+                height: body2.sprite.height,
+                width: body2.sprite.width,
+                killed: body2.sprite.killed
+            };
+
+            body2.sprite.kill();
+            body2.sprite.x = -1000;
+            body2.sprite.y = -1000;
+            this.socket.emit('kill_player', enemy);
         }
-        else if(this.sprite && this.sprite.mass < body2.sprite.mass) {
-            this.sprite.mass--;
-            this.sprite.width--;
-            this.sprite.height--;
-            body2.sprite.mass++;
-            body2.sprite.width++;
-            body2.sprite.height++;
+        else if(!this.sprite.killed && body2.sprite.mass - (body2.sprite.mass * 0.2) > this.sprite.mass){
+            this.sprite.killed = 1;
 
-
-            if(this.sprite.mass < 20)
-            {
-                this.sprite.kill();
-                this.sprite.body.destroy();
-            }
+            this.sprite.kill();
+            this.sprite.x = -1000;
+            this.sprite.y = -1000;
+            this.socket.emit('kill_player', this.toJson());
         }
     }
 
     particulesCallback(body1, body2){
-        this.sprite.width += body2.sprite.mass;
-        this.sprite.height += body2.sprite.mass;
-        this.sprite.speed = this.sprite.speed_base / this.sprite.mass;
-        this.sprite.mass += body2.sprite.mass;
+        if(!body2.sprite.killed){
+            body2.sprite.killed = 1;
 
-        var id = body2.sprite.id;
-        body2.sprite.destroy();
-        //body2.destroy();
+            this.sprite.width += body2.sprite.mass;
+            this.sprite.height += body2.sprite.mass;
+            this.sprite.mass += body2.sprite.mass;
+            this.sprite.speed = this.sprite.speed_base / this.sprite.mass;
 
-        this.socket.emit('delete_particule', id);
+            this.setColision();
+
+            this.socket.emit('update_particles', body2.sprite.id);
+        }
     }
 
     toJson () {
@@ -105,13 +122,8 @@ class Player {
         };
     }
 
-    render(){
-        if(this.lastmass != this.sprite.mass || Math.round(this.sprite.x) != Math.round(this.lastx) || Math.round(this.sprite.y) != Math.round(this.lasty)){
-            this.lastx = this.sprite.x;
-            this.lasty = this.sprite.y;
-            this.lastmass = this.sprite.mass;
-            this.socket.emit('move_player', this.toJson());
-        }
+    render(game){
+        this.socket.emit('move_player', this.toJson());
     }
 }
 

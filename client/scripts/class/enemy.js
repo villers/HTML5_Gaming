@@ -4,7 +4,6 @@
 class Enemy {
     constructor(game, enemy, groupColision, groupEnemy) {
         this.game = game;
-        this.lastmass = 0;
 
         var bmd = game.add.bitmapData(50,50);
         bmd.ctx.fillStyle = enemy.color;
@@ -14,9 +13,9 @@ class Enemy {
         bmd.ctx.fill();
 
         this.sprite = groupEnemy.create(enemy.x, enemy.y, bmd);
-        game.physics.p2.enable(this.sprite, true);
-        this.sprite.body.setCircle(this.sprite.width / 2);
-        this.sprite.body.fixedRotation = true;
+        game.physics.p2.enable(this.sprite, false);
+        this.sprite.body.setCircle(enemy.width / 2);
+        this.sprite.body.fixedRotation = false;
 
         this.sprite.body.setCollisionGroup(groupColision[1]);
         this.sprite.body.static = true;
@@ -28,20 +27,9 @@ class Enemy {
         this.sprite.mass = enemy.mass;
         this.sprite.speed_base = 5000;
         this.sprite.speed = enemy.speed;
-    }
-
-    toJson () {
-        return {
-            id: this.sprite.id,
-            username: this.sprite.username,
-            speed: this.sprite.speed,
-            mass: this.sprite.mass,
-            color: this.sprite.color,
-            x: this.sprite.x,
-            y: this.sprite.y,
-            height: this.sprite.height,
-            width: this.sprite.width
-        };
+        this.sprite.width = enemy.width;
+        this.sprite.height = enemy.height;
+        this.sprite.killed = enemy.killed;
     }
 }
 

@@ -17,8 +17,8 @@ var particules = [];
 for (var i = 0; i < nbParticule; i++)
 {
     particules[i] = {
-        x: randomIntInc(0, 5000),
-        y: randomIntInc(0, 5000),
+        x: randomIntInc(0, 3000),
+        y: randomIntInc(0, 3000),
         color: color[randomIntInc(0, 5)],
         id: i
     };
@@ -40,7 +40,7 @@ io.on('connection', function(socket){
         socket.broadcast.emit('new_player', user);
     });
 
-    socket.on('delete_particule', function(id){
+    socket.on('update_particles', function(id){
         particules[id].x = randomIntInc(0, 5000);
         particules[id].y = randomIntInc(0, 5000);
         io.emit('update_particles', particules[id]);
@@ -51,12 +51,17 @@ io.on('connection', function(socket){
         socket.broadcast.emit('move_player', user);
     });
 
+    socket.on('kill_player', function(enemy){
+        delete users[enemy.id];
+        io.emit('kill_player', enemy);
+    });
+
     socket.on('disconnect', function(){
         if(!me){
             return false;
         }
         delete users[me.id];
-        socket.emit('logout', me.id);
+        socket.broadcast.emit('logout', me.id);
     });
 
 });
