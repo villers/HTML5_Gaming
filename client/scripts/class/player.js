@@ -67,7 +67,6 @@ class Player {
             this.y = this.sprite.y;
 
             this.sprite.kill();
-            this.generateSprite();
 
             var enemy = {
                 id: body2.sprite.id,
