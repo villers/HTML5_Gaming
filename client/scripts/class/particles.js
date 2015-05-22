@@ -47,8 +47,6 @@ class Particules {
         this.particule = particle;
         this.generateSprite();
     }
-
-
 }
 
 export default Particules;

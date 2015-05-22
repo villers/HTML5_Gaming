@@ -14,7 +14,6 @@ class Menu {
     startGame() {
         this.game.state.start('game');
     }
-
 }
 
 export default Menu;

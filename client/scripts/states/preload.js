@@ -1,7 +1,6 @@
 'use strict';
 
 class Preload {
-
     preload() {
 
         // Add preload sprite
@@ -24,7 +23,6 @@ class Preload {
     onLoadComplete() {
         this.game.state.start('menu', true, false);
     }
-
 }
 
 export default Preload;

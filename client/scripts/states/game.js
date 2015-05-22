@@ -7,7 +7,6 @@ import Particules from 'scripts/class/particles';
 class Game {
     create(game) {
         this.socket = io.connect(window.location.host);
-        //this.socket = io.connect('10.12.181.36:3000');
         this.players = [];
         this.particules = [];
 
@@ -41,7 +40,7 @@ class Game {
     }
 
     setEventHandlers(game){
-        this.socket.on('connect', (data) => {
+        this.socket.on('connect', () => {
             this.player = new Player(game, this.socket, this.groupColision);
             this.socket.emit('new_player', this.player.toJson());
 
@@ -91,7 +90,6 @@ class Game {
         }
 
         game.debug.cameraInfo(game.camera, 32, 32);
-
     }
 }
 

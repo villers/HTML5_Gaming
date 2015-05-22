@@ -25,7 +25,6 @@ for (var i = 0; i < nbParticule; i++)
     };
 }
 
-
 io.on('connection', function(socket){
     var me = false;
 

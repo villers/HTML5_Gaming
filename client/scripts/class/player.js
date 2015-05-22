@@ -19,7 +19,6 @@ class Player {
     }
 
     generateSprite(){
-
         var bmd = this.generateCircle(this.color);
 
         this.sprite = this.game.add.sprite(this.x, this.y, bmd);
