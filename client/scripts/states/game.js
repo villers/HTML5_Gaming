@@ -73,6 +73,7 @@ class Game {
                     this.player.sprite.kill();
                     this.player.x = game.world.randomX;
                     this.player.y = game.world.randomY;
+                    this.player.mass = 20;
                     this.player.generateSprite();
                 }
             });
