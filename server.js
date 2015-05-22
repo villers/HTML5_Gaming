@@ -20,7 +20,8 @@ for (var i = 0; i < nbParticule; i++)
         x: randomIntInc(0, 3000),
         y: randomIntInc(0, 3000),
         color: color[randomIntInc(0, 5)],
-        id: i
+        id: i,
+        mass: 1
     };
 }
 
@@ -41,8 +42,13 @@ io.on('connection', function(socket){
     });
 
     socket.on('update_particles', function(id){
-        particules[id].x = randomIntInc(0, 5000);
-        particules[id].y = randomIntInc(0, 5000);
+        particules[id] = {
+            x: randomIntInc(0, 3000),
+            y: randomIntInc(0, 3000),
+            color: color[randomIntInc(0, 5)],
+            id: id,
+            mass: 1
+        };
         io.emit('update_particles', particules[id]);
     });
 

@@ -2,34 +2,56 @@
  * Created by viller_m on 19/05/15.
  */
 class Enemy {
-    constructor(game, enemy, groupColision, groupEnemy) {
+    constructor(game, enemy, groupColision) {
         this.game = game;
+        this.enemy = enemy;
+        this.groupColision = groupColision;
+        this.generateSprite();
+    }
 
-        var bmd = game.add.bitmapData(50,50);
-        bmd.ctx.fillStyle = enemy.color;
+    generateSprite(){
+        var bmd = this.generateCircle(this.enemy.color);
+
+        this.sprite = this.game.add.sprite(this.enemy.x, this.enemy.y, bmd);
+        this.game.physics.p2.enable(this.sprite, false);
+
+        this.setColision();
+
+        this.sprite.id = this.enemy.id;
+        this.sprite.username = '';
+        this.sprite.color = this.enemy.color;
+        this.sprite.mass = this.enemy.mass;
+        this.sprite.speed_base = 5000;
+        this.sprite.speed = this.enemy.speed;
+        this.sprite.width = this.enemy.width;
+        this.sprite.height = this.enemy.height;
+    }
+
+    generateCircle(color){
+        var bitmapSize = this.enemy.mass * 2
+        var bmd = this.game.add.bitmapData(bitmapSize, bitmapSize);
+        bmd.ctx.fillStyle = color;
         bmd.ctx.beginPath();
-        bmd.ctx.arc(25, 25, 25, 0, Math.PI*2, true);
+        bmd.ctx.arc(this.enemy.mass, this.enemy.mass, this.enemy.mass, 0, Math.PI*2, true);
         bmd.ctx.closePath();
         bmd.ctx.fill();
+        return bmd;
+    }
 
-        this.sprite = groupEnemy.create(enemy.x, enemy.y, bmd);
-        game.physics.p2.enable(this.sprite, false);
-        this.sprite.body.setCircle(enemy.width / 2);
-        this.sprite.body.fixedRotation = false;
-
-        this.sprite.body.setCollisionGroup(groupColision[1]);
+    setColision(){
         this.sprite.body.static = true;
+        this.sprite.body.setCircle(this.sprite.width / 2);
+        this.sprite.body.fixedRotation = false;
+        this.sprite.body.setCollisionGroup(this.groupColision[1]);
+        this.sprite.body.collides([this.groupColision[0], this.groupColision[2]]);
+    }
 
-        this.sprite.body.collides([groupColision[0], groupColision[2]]);
-        this.sprite.id = enemy.id;
-        this.sprite.username = '';
-        this.sprite.color = enemy.color;
-        this.sprite.mass = enemy.mass;
-        this.sprite.speed_base = 5000;
-        this.sprite.speed = enemy.speed;
-        this.sprite.width = enemy.width;
-        this.sprite.height = enemy.height;
-        this.sprite.killed = enemy.killed;
+    move(particle){
+        if(this.sprite.alive){
+            this.sprite.kill();
+        }
+        this.enemy = particle;
+        this.generateSprite();
     }
 }
 

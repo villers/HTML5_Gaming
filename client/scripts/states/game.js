@@ -9,6 +9,7 @@ class Game {
         this.socket = io.connect(window.location.host);
         //this.socket = io.connect('10.12.181.36:3000');
         this.players = [];
+        this.particules = [];
 
         this.color = ['#999999', '#CCCCCC', '#00FF00', '#0000FF', '#FF0000', '#FFFF00'];
 
@@ -47,68 +48,49 @@ class Game {
             // particules
             this.socket.on('getParticules', (particles) => {
                 for (var particle of particles) {
-                    new Particules(game, particle, this.groupColision, this.groupParticules);
+                    this.particules[particle.id] = new Particules(game, particle, this.groupColision);
                 }
             });
 
             this.socket.on('update_particles', (particle) => {
-                this.groupParticules.children.filter(function(item) {
-                    if(item.id === particle.id){
-                        item.kill();
-                        return;
-                    }
-                });
-                new Particules(game, particle, this.groupColision, this.groupParticules);
+                this.particules[particle.id].move(particle);
             });
 
             // new player
             this.socket.on('new_player', (enemy) => {
-                new Enemy(game, enemy, this.groupColision, this.groupEnemy);
+                this.players[enemy.id] = new Enemy(game, enemy, this.groupColision);
             });
 
             // Player
             this.socket.on('move_player', (enemy) => {
-                this.groupEnemy.children.filter(function(item) {
-                    if(item.id === enemy.id){
-                        item.kill();
-                        return;
-                    }
-                });
-                new Enemy(game, enemy, this.groupColision, this.groupEnemy);
+                if(this.players[enemy.id]){
+                    this.players[enemy.id].move(enemy);
+                }
             });
 
             this.socket.on('kill_player', (user) => {
                 if(this.player.id == user.id) {
+                    this.player.sprite.kill();
+                    this.player.x = game.world.randomX;
+                    this.player.y = game.world.randomY;
                     this.player.generateSprite();
                 }
-
             });
 
             this.socket.on('logout', (id) => {
-                this.groupEnemy.children.filter(function(item) {
-                    if(item.id === id){
-                        item.kill();
-                    }
-                });
+                this.players[id].sprite.kill();
+                delete this.players[id];
             });
         });
     }
 
     update(game) {
         if (this.player) {
-            game.physics.arcade.moveToPointer(this.player.sprite, this.player.sprite.speed);
-            game.debug.text('speed: ' + this.player.sprite.speed, 32, 120);
-            game.debug.text(this.player.sprite.mass, this.player.sprite.x - game.camera.x - 10, this.player.sprite.y - game.camera.y+ 5);
+            this.player.update(game);
         }
 
         game.debug.cameraInfo(game.camera, 32, 32);
 
-    }
-
-    render(game) {
-        if (this.player) {
-            this.player.render(game);
-        }
     }
 }
 

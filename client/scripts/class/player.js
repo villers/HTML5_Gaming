@@ -6,26 +6,32 @@ class Player {
         this.game = game;
         this.socket = socket;
         this.groupColision = groupColision;
+
         this.id = socket.io.engine.id;
+        this.color = this.generateColor();
+        this.mass = 20;
+        this.speed_base = 5000;
+        this.speed = this.speed_base / this.mass;
+        this.x = this.game.world.randomX;
+        this.y = this.game.world.randomY;
 
         this.generateSprite();
     }
 
     generateSprite(){
-        var color = this.generateColor();
-        var bmd = this.generateCircle(color);
 
-        this.sprite = this.game.add.sprite(this.game.world.randomX, this.game.world.randomY, bmd);
+        var bmd = this.generateCircle(this.color);
+
+        this.sprite = this.game.add.sprite(this.x, this.y, bmd);
         this.game.physics.p2.enable(this.sprite, false);
 
         this.setColision();
 
         this.sprite.id = this.id;
-        this.sprite.color = color;
-        this.sprite.mass = 20;
+        this.sprite.color = this.color;
+        this.sprite.mass = this.mass;
         this.sprite.speed_base = 5000;
         this.sprite.speed = this.sprite.speed_base / this.sprite.mass;
-        this.sprite.killed = 0;
 
         this.game.camera.follow(this.sprite);
     }
@@ -35,11 +41,12 @@ class Player {
         return color[this.game.rnd.integerInRange(0, 5)];
     }
 
-    generateCircle(color){
-        var bmd = this.game.add.bitmapData(50,50);
-        bmd.ctx.fillStyle = color;
+    generateCircle(){
+        var bitmapSize = this.mass * 2
+        var bmd = this.game.add.bitmapData(bitmapSize, bitmapSize);
+        bmd.ctx.fillStyle = this.color;
         bmd.ctx.beginPath();
-        bmd.ctx.arc(25, 25, 25, 0, Math.PI*2, true);
+        bmd.ctx.arc(this.mass, this.mass, this.mass, 0, Math.PI*2, true);
         bmd.ctx.closePath();
         bmd.ctx.fill();
         return bmd;
@@ -48,22 +55,17 @@ class Player {
     setColision(){
         this.sprite.body.setCircle(this.sprite.width / 2);
         this.sprite.body.fixedRotation = false;
-
         this.sprite.body.setCollisionGroup(this.groupColision[0]);
         this.sprite.body.collides(this.groupColision[1], this.enemyCallback, this);
         this.sprite.body.collides(this.groupColision[2], this.particulesCallback, this);
     }
 
     enemyCallback(body1, body2){
-        if(!body2.sprite.killed && this.sprite.mass - (this.sprite.mass * 0.2) > body2.sprite.mass){
-            body2.sprite.killed = 1;
-
-            this.sprite.width += body2.sprite.mass;
-            this.sprite.height += body2.sprite.mass;
-            this.sprite.mass += body2.sprite.mass;
-            this.sprite.speed = this.sprite.speed_base / this.sprite.mass;
-
-            this.setColision();
+        if(body2.sprite.alive && this.sprite.mass - (this.sprite.mass * 0.2) > body2.sprite.mass){
+            this.mass += body2.sprite.mass;
+            this.speed = this.sprite.speed_base / this.sprite.mass;
+            this.x = this.sprite.x;
+            this.y = this.sprite.y;
 
             var enemy = {
                 id: body2.sprite.id,
@@ -79,30 +81,24 @@ class Player {
             };
 
             body2.sprite.kill();
-            body2.sprite.x = -1000;
-            body2.sprite.y = -1000;
             this.socket.emit('kill_player', enemy);
         }
-        else if(!this.sprite.killed && body2.sprite.mass - (body2.sprite.mass * 0.2) > this.sprite.mass){
-            this.sprite.killed = 1;
-
+        else if(this.sprite.alive && body2.sprite.mass - (body2.sprite.mass * 0.2) > this.sprite.mass){
             this.sprite.kill();
-            this.sprite.x = -1000;
-            this.sprite.y = -1000;
             this.socket.emit('kill_player', this.toJson());
         }
     }
 
     particulesCallback(body1, body2){
-        if(!body2.sprite.killed){
-            body2.sprite.killed = 1;
+        if(body2.sprite.alive){
+            this.mass += body2.sprite.mass;
+            this.speed = this.sprite.speed_base / this.sprite.mass;
+            this.x = this.sprite.x;
+            this.y = this.sprite.y;
 
-            this.sprite.width += body2.sprite.mass;
-            this.sprite.height += body2.sprite.mass;
-            this.sprite.mass += body2.sprite.mass;
-            this.sprite.speed = this.sprite.speed_base / this.sprite.mass;
+            this.sprite.kill();
+            this.generateSprite();
 
-            this.setColision();
             body2.sprite.kill();
             this.socket.emit('update_particles', body2.sprite.id);
         }
@@ -122,7 +118,12 @@ class Player {
         };
     }
 
-    render(game){
+    update(game){
+        game.physics.arcade.moveToPointer(this.sprite, this.speed);
+
+        game.debug.text('speed: ' + this.sprite.speed, 32, 120);
+        game.debug.text(this.sprite.mass, this.sprite.x - game.camera.x - 10, this.sprite.y - game.camera.y+ 5);
+
         this.socket.emit('move_player', this.toJson());
     }
 }
