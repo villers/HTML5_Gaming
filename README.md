@@ -1,6 +1,7 @@
 # HTML5_Gaming
 
 [![Join the chat at https://gitter.im/villers/HTML5_Gaming](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/villers/HTML5_Gaming?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Agar.io clone written with Socket.IO and Phaser
 
 ## Installation
