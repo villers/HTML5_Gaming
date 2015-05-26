@@ -90,6 +90,9 @@ class Game {
         }
 
         game.debug.cameraInfo(game.camera, 32, 32);
+        game.debug.text('fps: '+ game.time.fps || '--', 32, 140);
+
+        //game.world.scale.set(1);
     }
 }
 

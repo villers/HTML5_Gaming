@@ -1,13 +1,13 @@
 'use strict';
 
 class Preload {
-    preload() {
+    preload(game) {
 
         // Add preload sprite
         var tmpPreload = this.game.cache.getImage('preloader');
         this.loadingSprite = this.add.sprite(
-            (this.game.width - tmpPreload.width) / 2,
-            (this.game.height - tmpPreload.height) / 2,
+            (game.width - tmpPreload.width) / 2,
+            (game.height - tmpPreload.height) / 2,
             'preloader'
         );
 
@@ -18,6 +18,8 @@ class Preload {
         // Load game assets here
         this.load.image('logo', 'assets/logo.png');
         this.load.image('grid', 'assets/grid.jpeg');
+
+        game.time.advancedTiming = true;
     }
 
     onLoadComplete() {
