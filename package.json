@@ -1,19 +1,21 @@
 {
-  "name": "server",
+  "name": "Agar-clone",
   "version": "1.0.0",
-  "description": "Server",
+  "description": "A simple Agar.io clone",
   "main": "server.js",
   "scripts": {
+    "postinstall": "./node_modules/bower/bin/bower install",
+    "start": "node server/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "VILLERS Mickaël",
+  "contributors": [
+  ],
   "dependencies": {
-    "MD5": "^1.2.1",
     "express": "^4.12.4",
-    "socket.io": "^1.3.5"
+    "socket.io": "^1.3.5",
+    "bower": "*"
   },
   "devDependencies": {
-    "bower": "*"
   }
 }
