@@ -3,7 +3,7 @@
 
 Agar.io clone written with Socket.IO and Phaser
 
-Try online: http://mickaelvillers.me:3001/index.html
+Try online: http://mickaelvillers.me:3000/index.html
 
 ## Installation
 #### Downloading the Dependencies
